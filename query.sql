@@ -1,4 +1,4 @@
-
+-- Revenue Trends and Product-Level Performance
 -- 1. Average Amount by Country
 Select c.country, round(avg(s.amount),2) as "average amount"
 from customers c
@@ -20,8 +20,51 @@ group by p.productName
 order by quantity desc
 limit 10
 -- 4. Average Number of Orders per Customer
-Select 
--- 9.10 based on their total purchase amount into "High Value," "Medium Value," and "Low Value" categories.
+SELECT 
+    COUNT(o.orderNumber) * 1.0 / COUNT(DISTINCT c.customerNumber) AS avg_orders_per_customer
+FROM orders o
+JOIN customers c 
+ON o.customerNumber = c.customerNumber;
+
+-- Operation
+-- 5. On time shipment percentage
+WITH ontime_order AS (
+    SELECT 
+        orderNumber
+    FROM orders
+    WHERE shippedDate <= requiredDate
+),
+cte AS (
+    SELECT 
+        COUNT(DISTINCT o.orderNumber) AS total_order, 
+        COUNT(lo.orderNumber) AS on_time_order
+    FROM orders o
+    LEFT JOIN ontime_order lo
+        ON o.orderNumber = lo.orderNumber
+    WHERE o.status = 'Shipped'
+)
+SELECT 
+    total_order,
+    on_time_order,
+    ROUND(1.0 * on_time_order / total_order * 100, 2) AS on_time_rate
+FROM cte;
+--c2
+SELECT 
+    COUNT(DISTINCT orderNumber) AS total_order,
+    COUNT(DISTINCT CASE WHEN shippedDate <= requiredDate THEN orderNumber END) AS on_time_order,
+    ROUND(
+        100.0 * COUNT(DISTINCT CASE WHEN shippedDate <= requiredDate THEN orderNumber END)
+        / COUNT(DISTINCT orderNumber),
+        2
+    ) AS on_time_rate
+FROM orders
+WHERE status = 'Shipped';
+-- 6. Late Shipments Identify
+SELECT *
+FROM orders 
+WHERE shippedDate > requiredDate
+-- Customer Behaviour
+-- 8. based on their total purchase amount into "High Value," "Medium Value," and "Low Value" categories.
 with cte as (
     select customerNumber, round(sum(amount),2) as "total_spent"
     from payments
@@ -57,39 +100,7 @@ SELECT DISTINCT
 FROM customers c
 LEFT JOIN customer_payment cp ON c.customerNumber = cp.customerNumber
 ORDER BY c.customerName;
---Câu 5. On time shipment percentage
-WITH ontime_order AS (
-    SELECT 
-        orderNumber
-    FROM orders
-    WHERE shippedDate <= requiredDate
-),
-cte AS (
-    SELECT 
-        COUNT(DISTINCT o.orderNumber) AS total_order, 
-        COUNT(lo.orderNumber) AS on_time_order
-    FROM orders o
-    LEFT JOIN ontime_order lo
-        ON o.orderNumber = lo.orderNumber
-    WHERE o.status = 'Shipped'
-)
-SELECT 
-    total_order,
-    on_time_order,
-    ROUND(1.0 * on_time_order / total_order * 100, 2) AS on_time_rate
-FROM cte;
---c2
-SELECT 
-    COUNT(DISTINCT orderNumber) AS total_order,
-    COUNT(DISTINCT CASE WHEN shippedDate <= requiredDate THEN orderNumber END) AS on_time_order,
-    ROUND(
-        100.0 * COUNT(DISTINCT CASE WHEN shippedDate <= requiredDate THEN orderNumber END)
-        / COUNT(DISTINCT orderNumber),
-        2
-    ) AS on_time_rate
-FROM orders
-WHERE status = 'Shipped';
--- Câu 10. Frequently Co-Purchased Products
+-- 9. Frequently Co-Purchased Products
 -- Dùng self join lấy các cặp sản phẩm được mua cùng nhau
 select
     case
