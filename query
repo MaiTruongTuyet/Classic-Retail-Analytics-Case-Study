@@ -1,4 +1,4 @@
--- Truong Thi Tuyet Mai - K214060400
+
 -- 1. Average Amount by Country
 Select c.country, round(avg(s.amount),2) as "average amount"
 from customers c
