@@ -26,6 +26,4 @@ Calculate the average number of orders placed by each customer.
 Segment customers based on their total purchase amount into "High Value," "Medium Value," and "Low Value" categories.
 10. Frequently Co-Purchased Products
 Identify frequently co-purchased products to find cross-selling opportunities.
-# Data
 
-# Findings and Conclusion
